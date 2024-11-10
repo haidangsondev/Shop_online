@@ -1,0 +1,33 @@
+const mongoose = require("mongoose"); // Erase if already required
+
+// Declare the Schema of the Mongo model
+var orderSchema = new mongoose.Schema(
+  {
+    products: [
+      {
+        product: { type: mongoose.Types.ObjectId, ref: "Proudct" },
+        color: String,
+        quantity: Number,
+        price: Number,
+        thumb: String,
+        title: String,
+      },
+    ],
+    status: {
+      type: String,
+      default: "Đang xử lí",
+      enum: ["Hủy", "Đang xử lí", "Đã giao"],
+    },
+    total: Number,
+    orderBy: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+//Export the model
+module.exports = mongoose.model("Order", orderSchema);

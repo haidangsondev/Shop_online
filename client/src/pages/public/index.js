@@ -1,0 +1,12 @@
+export { default as Home } from "./Home";
+export { default as Login } from "./Login";
+export { default as Public } from "./PublicLayout";
+export { default as Blog } from "./Blog";
+export { default as OurServices } from "./OurServices";
+export { default as Faq } from "./Faq";
+export { default as DetailProduct } from "./DetailProduct";
+export { default as FinalRegister } from "./FinalRegister";
+export { default as ResetPassword } from "./ResetPassword";
+export { default as Products } from "./Products";
+export { default as DetailCart } from "./DetailCart";
+export { default as Checkout } from "./Checkout";
