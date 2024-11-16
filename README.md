@@ -32,9 +32,9 @@ Dự án **Bán Hàng Điện Tử** là hệ thống bán hàng trực tuyến 
   ![](./client/src/img/image_6.png)</br>
   ![](./client/src/img/image_7.png)
   
-  ## 3. Kiến Trúc Hệ Thống
+## 3. Kiến Trúc Hệ Thống
   Hệ thống sử dụng kiến trúc MVC kết hợp với React cho frontend và Node.js cùng Express cho backend. Cơ sở dữ liệu MongoDB được sử dụng để lưu trữ và quản lý dữ liệu.
-  ### Fontend 
+### Fontend 
   
 - **Components**: Các thành phần React tái sử dụng như thanh ba, sản phẩm, tìm kiếm, đầu trang, cuối trang,..
 - **Pages**: Các trang chính như trang chủ, trang chi tiết sản phẩm, giỏ hàng, trang thanh toán và phân vùng cho mỗi người dùng.
