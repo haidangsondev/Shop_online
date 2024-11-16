@@ -26,6 +26,7 @@ Dự án **Bán Hàng Điện Tử** là hệ thống bán hàng trực tuyến 
 - **Quản lý đơn hàng**: Theo dõi và quản lý các đơn hàng của khách hàng.
 - **Xác thực người dùng**: Sử dụng JWT để xác thực và bảo mật.
   
+  ![](./client/src/img/image_1.png)
   ## 3. Kiến Trúc Hệ Thống
   Hệ thống sử dụng kiến trúc MVC kết hợp với React cho frontend và Node.js cùng Express cho backend. Cơ sở dữ liệu MongoDB được sử dụng để lưu trữ và quản lý dữ liệu.
   ### Fontend 
@@ -65,21 +66,8 @@ Dự án **Bán Hàng Điện Tử** là hệ thống bán hàng trực tuyến 
   - **Moment.js**: Xử lý và định dạng thời gian.
   - **React-Image-Magnify**: Tăng cường trải nghiệm xem hình ảnh sản phẩm.
   - **React-Masonry-CSS**: Hiển thị các sản phẩm theo kiểu lưới.
-  - **React-Slick**: Thư viện tạo slider cho hình ảnh và sản phẩm.
-  - **React-Select**: Tạo các dropdown chọn lựa nâng cao.
-  - **@paypal/react-paypal-js**: Tích hợp thanh toán qua PayPal.
-  - **@testing-library/react**: Thư viện kiểm thử cho các thành phần React.
-  - **@testing-library/jest-dom**: Cung cấp các phương thức bổ sung cho việc kiểm thử DOM.
-  - **@testing-library/user-event**: Mô phỏng hành động của người dùng trong kiểm thử.
-  - **@tinymce/tinymce-react**: Trình soạn thảo văn bản WYSIWYG cho việc nhập nội dung.
-  - **clsx**: Kết hợp nhiều lớp CSS trong React.
-  - **redux-persist**: Giúp lưu trữ trạng thái Redux để giữ lại khi tải lại trang.
-  - **slick-carousel**: Thư viện cho việc tạo carousel và slider.
-  - **use-react-router-breadcrumbs**: Tạo breadcrumbs cho ứng dụng dựa trên điều hướng.
-  - **web-vitals**: Theo dõi hiệu suất và chất lượng của ứng dụng.
-  - **dotenv**: Quản lý biến môi trường cho ứng dụng.
-  - **@tailwindcss/forms**: Tùy chỉnh và tối ưu hóa các thành phần form trong TailwindCSS.
-  - TailwindCSS (Thiết kế giao diện)
+  - **React-Slick**: Thư viện tạo slider cho hình ảnh và sản phẩm
+   ..........................
 
 ### Backend 
 - **Ngôn ngữ lập trình**: Node.js
@@ -107,7 +95,7 @@ Dự án **Bán Hàng Điện Tử** là hệ thống bán hàng trực tuyến 
 ### Các bước để cài đặt và chạy dự án:
 1. Clone repository:
    ```bash
-     git clone [[link repository](https://github.com/haidangsondev/Shop_online.git)]
+    git clone  https://github.com/haidangsondev/Shop_online
    ```
 2. Cài đặt các gói cần thiết:
    ```bash
