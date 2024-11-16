@@ -17,9 +17,9 @@ Dự án **Bán Hàng Điện Tử** là hệ thống bán hàng trực tuyến 
 - **Danh sách yêu thích**: Lưu các sản phẩm yêu thích để xem lại sau.
 - **Blog và Dịch vụ**: Xem các bài viết tin tức và dịch vụ hỗ trợ của cửa hàng.
   
-  ![](./client/src/img/image_2.png)
-  ![](./client/src/img/image_3.png)
-  ![](./client/src/img/image_5.png)
+  ![](./client/src/img/image_2.png)</br>
+  ![](./client/src/img/image_3.png)</br>
+  ![](./client/src/img/image_5.png)</br>
 ### Backend 
 - **Quản lý người dùng**: Đăng ký, đăng nhập, quản lý thông tin người dùng.
 - **Quản lý sản phẩm**: Thêm, chỉnh sửa, xóa sản phẩm.
@@ -29,7 +29,7 @@ Dự án **Bán Hàng Điện Tử** là hệ thống bán hàng trực tuyến 
 - **Quản lý mã giảm giá**: Tạo, chỉnh sửa, xóa mã giảm giá.
 - **Quản lý đơn hàng**: Theo dõi và quản lý các đơn hàng của khách hàng.
 - **Xác thực người dùng**: Sử dụng JWT để xác thực và bảo mật.
-  ![](./client/src/img/image_6.png)
+  ![](./client/src/img/image_6.png)</br>
   ![](./client/src/img/image_7.png)
   
   ## 3. Kiến Trúc Hệ Thống
