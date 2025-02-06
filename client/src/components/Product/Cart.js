@@ -14,6 +14,7 @@ const { IoCloseCircleSharp, RiDeleteBin2Fill } = icons;
 
 function Cart({ dispatch, navigate }) {
   const { currentCart } = useSelector((state) => state.user);
+  console.log({ currentCart });
   const deleteCart = async (product_id) => {
     const response = await apiDeleteCart(product_id);
     if (response?.success) {

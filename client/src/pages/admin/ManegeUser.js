@@ -41,6 +41,7 @@ function ManegeUser() {
       ...params,
       limit: process.env.REACT_APP_PRODUCT_LIMIT,
     });
+    console.log({user:response})
     if (response?.success) setUsers(response);
   };
 

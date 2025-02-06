@@ -16,15 +16,17 @@ function ResetPassword() {
       password: isResetPassword,
       tokenPassword: passwordResetToken,
     });
-    swal
-      .fire(
-        response.success ? "Thành công" : "Lỗi!",
-        response.message,
-        response.success ? "success" : "error"
-      )
-      .then(() => {
-        navigate(`/${path.LOGIN}`);
-      });
+    if (response.success) {
+      swal
+        .fire(
+          response.success ? "Thành công" : "Lỗi!",
+          response.message,
+          response.success ? "success" : "error"
+        )
+        .then(() => {
+          navigate(`/${path.LOGIN}`);
+        });
+    }
   };
   return (
     <div className="absolute top-0 left-0 bottom-0 right-0 bg-white flex flex-col items-center py-8 z-50 ">

@@ -1,4 +1,4 @@
-const orderController = require("../controllers/order.controller");
+const orderController = require("../controllers/order.controllers");
 const router = require("express").Router();
 const { verifyAccessToken, verifyIsAdmin } = require("../utils/jwt");
 

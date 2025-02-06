@@ -11,7 +11,7 @@ function Navigation() {
           key={item.id}
           className={({ isActive }) =>
             isActive
-              ? "pr-12 font-semibold hover:text-main text-main"
+              ? "pr-12 font-semibold hover:text-main text-main underline underline-offset-4 decoration-4 decoration-main"
               : "pr-12 font-semibold hover:text-main"
           }
         >

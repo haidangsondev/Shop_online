@@ -15,6 +15,7 @@ const productsSlice = createSlice({
         state.isLoading = true;
       })
       .addCase(getProducts.fulfilled, (state, action) => {
+        console.log({ value: action.payload });
         state.isLoading = false;
         state.newProducts = action.payload;
       })

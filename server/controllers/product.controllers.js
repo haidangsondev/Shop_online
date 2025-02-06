@@ -1,21 +1,18 @@
 const productModel = require("../models/product.model");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
+const productServices = require("../services/product.services");
 
 const createProduct = asyncHandler(async (req, res) => {
   const { title, price, description, brand, category, color, quantity } =
     req.body;
   const thumb = req?.files?.thumb[0]?.path;
   const images = req?.files?.images?.map((item) => item.path);
-  if (
-    !(title && price && description && brand && category && color && quantity)
-  ) {
-    throw new Error("Các trường tạo sản phẩm là bắt buộc");
-  }
+
   req.body.slug = slugify(req.body.title);
   if (thumb) req.body.thumb = thumb;
   if (images) req.body.images = images;
-  const Product = await productModel.create(req.body);
+  const Product = await productServices.createProduct(req.body);
   return res.status(200).json({
     success: Product ? true : false,
     message: Product ? "Tạo sản phẩm thành công" : "Tạo sản phẩm thất bại",
@@ -25,19 +22,8 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const getProduct = asyncHandler(async (req, res) => {
   const { product_id } = req.params;
-  if (!product_id) {
-    return res.status(400).json({
-      success: false,
-      message: "product_id params là bắt buộc",
-    });
-  }
-  const Product = await productModel.findById(product_id).populate({
-    path: "ratings",
-    populate: {
-      path: "postedId",
-      select: "username",
-    },
-  });
+
+  const Product = await productServices.getDetailProduct(product_id);
   return res.status(200).json({
     success: Product ? true : false,
     message: Product
@@ -93,28 +79,29 @@ const getProducts = asyncHandler(async (req, res) => {
     };
   }
   const result = { ...formatColor, ...formatQueries, ...queryObject };
-  let Product = productModel.find(result);
+  let ProductQuery = productServices.findProduct(result); // Đảm bảo luôn là một query object
 
   //   sort
   if (req.query.sort) {
     const sortBy = req.query.sort.split(",").join(" ");
-    Product = Product.sort(sortBy);
+    ProductQuery = ProductQuery.sort(sortBy);
   }
 
   //   fields
   if (req.query.fields) {
     const fieldsBy = req.query.fields.split(",").join(" ");
-    Product = Product.select(fieldsBy);
+    ProductQuery = ProductQuery.select(fieldsBy);
   }
 
   //   pagination
   const page = +req.query.page || 1;
-  const limit = +req.query.limit || process.env.LIMIT_PRODUCT;
+  const limit = +req.query.limit || parseInt(process.env.LIMIT_PRODUCT, 10);
   const skip = (page - 1) * limit;
-  Product.skip(skip).limit(limit);
 
-  const Products = await Product.exec();
-  const counts = await productModel.find(result).countDocuments();
+  ProductQuery = ProductQuery.skip(skip).limit(limit); // Thay đổi chỗ này
+
+  const Products = await ProductQuery.exec();
+  const counts = await productServices.findProduct(result).countDocuments();
 
   return res.status(200).json({
     success: Products ? true : false,
@@ -130,18 +117,11 @@ const updateProduct = asyncHandler(async (req, res) => {
   const files = req?.files;
   if (files?.thumb) req.body.thumb = files?.thumb[0]?.path;
   if (files?.images) req.body.images = files?.images?.map((item) => item.path);
-  if (!product_id || Object.keys(req.body).length === 0) {
-    throw new Error(
-      "product_id params và thông tin sản phẩm cập nhật là bắt buộc"
-    );
-  }
 
   if (req.body && req.body.title) {
     req.body.slug = slugify(req.body.title);
   }
-  const Product = await productModel.findByIdAndUpdate(product_id, req.body, {
-    new: true,
-  });
+  const Product = await productServices.updateProduct(product_id, req.body);
   return res.status(200).json({
     success: Product ? true : false,
     message: Product
@@ -153,11 +133,8 @@ const updateProduct = asyncHandler(async (req, res) => {
 
 const deleteProduct = asyncHandler(async (req, res) => {
   const { product_id } = req.params;
-  if (!product_id) {
-    throw new Error("product_id params là bắt buộc");
-  }
 
-  const Product = await productModel.findByIdAndDelete(product_id);
+  const Product = await productServices.deleteProduct(product_id);
   return res.status(200).json({
     success: Product ? true : false,
     message: Product
@@ -170,13 +147,7 @@ const ratingProduct = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { star, comment, product_id, updatedAt } = req.body;
 
-  if (!star || !product_id) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường star và product_id là bắt buộc",
-    });
-  }
-  let Product = await productModel.findById(product_id);
+  let Product = await productServices.checkDataProduct(product_id);
 
   if (!Product) {
     throw new Error("Không tìm thấy sản phẩm");
@@ -186,29 +157,16 @@ const ratingProduct = asyncHandler(async (req, res) => {
   );
 
   if (checkratingProducted) {
-    checkratingProducted = await productModel.updateOne(
-      {
-        ratings: { $elemMatch: checkratingProducted },
-      },
-      {
-        $set: {
-          "ratings.$.star": +star,
-          "ratings.$.comment": comment,
-          "ratings.$.updatedAt": updatedAt,
-        },
-      },
-      { new: true }
+    const data = { star, comment, updatedAt };
+    checkratingProducted = await productServices.updateRatinged(
+      checkratingProducted,
+      data
     );
   } else {
-    checkratingProducted = await productModel.findByIdAndUpdate(
-      product_id,
-      {
-        $push: { ratings: { star: +star, postedId: _id, comment, updatedAt } },
-      },
-      { new: true }
-    );
+    const data = { star: +star, comment, postedId: _id, updatedAt };
+    checkratingProducted = await productServices.addRatings(product_id, data);
   }
-  const result = await productModel.findById(product_id);
+  const result = await productServices.checkDataProduct(product_id);
   const countUserRated = result.ratings.length;
   const sumStarRatings = result.ratings.reduce(
     (sum, item) => (sum += item.star),
@@ -230,20 +188,9 @@ const ratingProduct = asyncHandler(async (req, res) => {
 
 const uploadImagesProduct = asyncHandler(async (req, res) => {
   const { product_id } = req.params;
-  if (!product_id || !req.files) {
-    return res.status(400).json({
-      success: false,
-      message: "product_id params và các file hình ảnh là bắt buộc",
-    });
-  }
 
-  const Product = await productModel.findByIdAndUpdate(
-    product_id,
-    {
-      $push: { images: { $each: req.files.map((item) => item.path) } },
-    },
-    { new: true }
-  );
+  const data = req.files.map((item) => item.path);
+  const Product = await productServices.updateImageProduct(product_id, data);
   return res.status(200).json({
     success: Product ? true : false,
     message: Product ? "Upload ảnh thành công" : "Upload ảnh thất bại",

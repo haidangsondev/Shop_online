@@ -1,5 +1,6 @@
 const router = require("express").Router();
-const blogController = require("../controllers/blog.controller");
+const blogController = require("../controllers/blog.controllers");
+const { validateRequest } = require("../middlewares/validate.middleware");
 const uploadCloud = require("../utils/cloudinary");
 const { verifyAccessToken, verifyIsAdmin } = require("../utils/jwt");
 
@@ -15,7 +16,7 @@ router.put(
 
 // ADMIN
 router.use(verifyAccessToken, verifyIsAdmin);
-router.post("/create-blog", blogController.createBlog);
+router.post("/create-blog", validateRequest("blog"), blogController.createBlog);
 router.put("/update-blog/:blog_id", blogController.updateBlog);
 router.delete("/delete-blog/:blog_id", blogController.deleteBlog);
 router.put(

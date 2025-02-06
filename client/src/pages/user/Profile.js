@@ -7,7 +7,7 @@ import avatar from "img/userDefault.png";
 import { apiUpdateProfile } from "apis";
 import { getUser } from "redux/reduxActions/userAction";
 import { toast } from "react-toastify";
-import { NavLink, useSearchParams } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import WithBase from "hoc/withBase";
 import logo from "img/image.png";
 
@@ -19,7 +19,7 @@ function Profile({ navigate, dispatch }) {
     formState: { errors, isDirty },
     reset,
   } = useForm({});
-  const [searchParams] = useSearchParams();
+
   useEffect(() => {
     reset({
       username: current?.username,
@@ -43,7 +43,7 @@ function Profile({ navigate, dispatch }) {
     if (response?.success) {
       dispatch(getUser());
       toast.success(response.message);
-      if (searchParams.get("redirect")) navigate(searchParams.get("redirect"));
+      // if (searchParams.get("redirect")) navigate(searchParams.get("redirect"));
     } else {
       toast.error(response.message);
     }

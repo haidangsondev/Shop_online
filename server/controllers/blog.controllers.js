@@ -1,15 +1,11 @@
 const blogModel = require("../models/blog.model");
 const asyncHandler = require("express-async-handler");
+const blogServices = require("../services/blog.services");
 
 const createBlog = asyncHandler(async (req, res) => {
   const { title, description, category } = req.body;
-  if (!title || !description || !category) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường title, description và category là bắt buộc",
-    });
-  }
-  const Blog = await blogModel.create(req.body);
+
+  const Blog = await blogServices.createBlog(req.body);
   return res.status(200).json({
     success: Blog ? true : false,
     message: Blog ? "Tạo blog  thành công" : "Tạo blog  thất bại",
@@ -19,15 +15,8 @@ const createBlog = asyncHandler(async (req, res) => {
 
 const updateBlog = asyncHandler(async (req, res) => {
   const { blog_id } = req.params;
-  if (!blog_id || Object.keys(req.body).length === 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường blog_id và thông tin cập nhật là bắt buộc",
-    });
-  }
-  const Blog = await blogModel.findByIdAndUpdate(blog_id, req.body, {
-    new: true,
-  });
+
+  const Blog = await blogServices.updateBlog(blog_id, req.body);
   return res.status(200).json({
     success: Blog ? true : false,
     message: Blog ? "Cập nhật blog  thành công" : "Cập nhật blog  thất bại",
@@ -36,7 +25,7 @@ const updateBlog = asyncHandler(async (req, res) => {
 });
 
 const getBlogs = asyncHandler(async (req, res) => {
-  const Blog = await blogModel.find();
+  const Blog = await blogServices.getBlogs();
   return res.status(200).json({
     success: Blog ? true : false,
     message: Blog ? "Lấy blogs thành công" : "Lấy blogs thất bại",
@@ -46,16 +35,8 @@ const getBlogs = asyncHandler(async (req, res) => {
 
 const getBlog = asyncHandler(async (req, res) => {
   const { blog_id } = req.params;
-  if (!blog_id) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường blog_id là bắt buộc",
-    });
-  }
-  const Blog = await blogModel
-    .findByIdAndUpdate(blog_id, { $inc: { view: 1 } }, { new: true })
-    .populate("likes", "username email")
-    .populate("dislikes", "username email");
+
+  const Blog = await blogServices.getDetailBlog(blog_id);
   return res.status(200).json({
     success: Blog ? true : false,
     message: Blog ? "Lấy blog thành công" : "Lấy blog thất bại",
@@ -65,13 +46,8 @@ const getBlog = asyncHandler(async (req, res) => {
 
 const deleteBlog = asyncHandler(async (req, res) => {
   const { blog_id } = req.params;
-  if (!blog_id) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường blog_id là bắt buộc",
-    });
-  }
-  const Blog = await blogModel.findByIdAndDelete(blog_id);
+
+  const Blog = await blogServices.deteleBlog(blog_id);
   return res.status(200).json({
     success: Blog ? true : false,
     message: Blog ? "Xóa blog thành công" : "Xóa blog thất bại",
@@ -82,14 +58,8 @@ const deleteBlog = asyncHandler(async (req, res) => {
 const likeBlog = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { blog_id } = req.params;
-  if (!blog_id) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường blog_id là bắt buộc",
-    });
-  }
 
-  const Blog = await blogModel.findById(blog_id);
+  const Blog = await blogServices.getDetailBlog(blog_id);
   if (!Blog) {
     throw new Error("Không tìm thấy bài đăng");
   }
@@ -98,21 +68,13 @@ const likeBlog = asyncHandler(async (req, res) => {
     (item) => item._id.toString() === _id
   );
   if (checkedUserDislike) {
-    await blogModel.findByIdAndUpdate(
-      blog_id,
-      { $pull: { dislikes: _id } },
-      { new: true }
-    );
+    await blogServices.removeDislikeBlog(blog_id, _id);
   }
 
   const isLike = Blog.likes.find((item) => item._id.toString() === _id);
 
   if (isLike) {
-    const Blog = await blogModel.findByIdAndUpdate(
-      blog_id,
-      { $pull: { likes: _id } },
-      { new: true }
-    );
+    const Blog = await blogServices.removeLikeBlog(blog_id, _id);
     return res.status(200).json({
       success: Blog ? true : false,
       message: Blog
@@ -121,11 +83,7 @@ const likeBlog = asyncHandler(async (req, res) => {
       Blog,
     });
   } else {
-    const Blog = await blogModel.findByIdAndUpdate(
-      blog_id,
-      { $push: { likes: _id } },
-      { new: true }
-    );
+    const Blog = await blogServices.addLikeBlog(blog_id, _id);
     return res.status(200).json({
       success: Blog ? true : false,
       message: Blog
@@ -139,14 +97,8 @@ const likeBlog = asyncHandler(async (req, res) => {
 const dislikeBlog = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { blog_id } = req.params;
-  if (!blog_id) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường blog_id là bắt buộc",
-    });
-  }
 
-  const Blog = await blogModel.findById(blog_id);
+  const Blog = await blogServices.getDetailBlog(blog_id);
   if (!Blog) {
     throw new Error("Không tìm thấy bài đăng");
   }
@@ -155,21 +107,13 @@ const dislikeBlog = asyncHandler(async (req, res) => {
     (item) => item._id.toString() === _id
   );
   if (checkedUserLike) {
-    await blogModel.findByIdAndUpdate(
-      blog_id,
-      { $pull: { likes: _id } },
-      { new: true }
-    );
+    await blogServices.removeLikeBlog(blog_id, _id);
   }
 
   const isLike = Blog.dislikes.find((item) => item._id.toString() === _id);
 
   if (isLike) {
-    const Blog = await blogModel.findByIdAndUpdate(
-      blog_id,
-      { $pull: { dislikes: _id } },
-      { new: true }
-    );
+    const Blog = await blogServices.removeDislikeBlog(blog_id, _id);
     return res.status(200).json({
       success: Blog ? true : false,
       message: Blog
@@ -178,11 +122,7 @@ const dislikeBlog = asyncHandler(async (req, res) => {
       Blog,
     });
   } else {
-    const Blog = await blogModel.findByIdAndUpdate(
-      blog_id,
-      { $push: { dislikes: _id } },
-      { new: true }
-    );
+    const Blog = await blogServices.addDisLikeBlog(blog_id, _id);
     return res.status(200).json({
       success: Blog ? true : false,
       message: Blog
@@ -195,20 +135,8 @@ const dislikeBlog = asyncHandler(async (req, res) => {
 
 const uploadImageBlog = asyncHandler(async (req, res) => {
   const { blog_id } = req.params;
-  if (!blog_id || !req.file) {
-    return res.status(400).json({
-      success: false,
-      message: "blog_id params và các file hình ảnh là bắt buộc",
-    });
-  }
 
-  const Blog = await blogModel.findByIdAndUpdate(
-    blog_id,
-    {
-      image: req.file.path,
-    },
-    { new: true }
-  );
+  const Blog = await blogServices.uploadImageBlog(blog_id, req.file.path);
   return res.status(200).json({
     success: Blog ? true : false,
     message: Blog ? "Upload ảnh thành công" : "Upload ảnh không thành công",

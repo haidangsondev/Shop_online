@@ -36,8 +36,6 @@ function ProductInfo({
       product_id,
       updatedAt: Date.now(),
     });
-    console.log(response);
-    console.log({ comment, star, product_id });
     if (response.success) {
       swal
         .fire("Thành công!", "Đánh giá sản phẩm thành công", "success")

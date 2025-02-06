@@ -1,5 +1,5 @@
-const blogCategoryModel = require("../models/blogCategory.model");
 const asyncHandler = require("express-async-handler");
+const blogCategoryServices = require("../services/blogCategory.services");
 
 const createBlogCategory = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -9,7 +9,7 @@ const createBlogCategory = asyncHandler(async (req, res) => {
       message: "Trường title là bắt buộc",
     });
   }
-  const blogCategory = await blogCategoryModel.create(req.body);
+  const blogCategory = await blogCategoryServices.createBlogCategory(req.body);
   return res.status(200).json({
     success: blogCategory ? true : false,
     message: blogCategory
@@ -20,7 +20,7 @@ const createBlogCategory = asyncHandler(async (req, res) => {
 });
 
 const getBlogCategoies = asyncHandler(async (req, res) => {
-  const blogCategories = await blogCategoryModel.find();
+  const blogCategories = await blogCategoryServices.getBlogCategories();
   return res.status(200).json({
     success: blogCategories ? true : false,
     message: blogCategories
@@ -38,7 +38,9 @@ const getBlogCategory = asyncHandler(async (req, res) => {
       message: "blog_category_id là bắt buộc",
     });
   }
-  const blogCategory = await blogCategoryModel.findById(blog_category_id);
+  const blogCategory = await blogCategoryServices.getDetailBlogCategory(
+    blog_category_id
+  );
   return res.status(200).json({
     success: blogCategory ? true : false,
     message: blogCategory
@@ -57,10 +59,9 @@ const updateBlogCategory = asyncHandler(async (req, res) => {
       message: "blog_category_id và thông tin cập nhật là bắt buộc",
     });
   }
-  const blogCategory = await blogCategoryModel.findByIdAndUpdate(
+  const blogCategory = await blogCategoryServices.updateBlogCategory(
     blog_category_id,
-    req.body,
-    { new: true }
+    req.body
   );
   return res.status(200).json({
     success: blogCategory ? true : false,
@@ -78,7 +79,7 @@ const deleteBlogCategory = asyncHandler(async (req, res) => {
       message: "blog_category_id là bắt buộc",
     });
   }
-  const blogCategory = await blogCategoryModel.findByIdAndDelete(
+  const blogCategory = await blogCategoryServices.deleteBlogCategory(
     blog_category_id
   );
   return res.status(200).json({

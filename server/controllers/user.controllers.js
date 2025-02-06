@@ -5,17 +5,12 @@ const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const uniqid = require("uniqid");
+const userServices = require("../services/user.services");
 
 const register = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường email và password là bắt buộc",
-    });
-  }
 
-  const checkEmail = await userModel.findOne({ email });
+  const checkEmail = await userServices.checkDataUser({ email });
   if (checkEmail) {
     throw new Error("Email đã tồn tại");
   }
@@ -39,9 +34,7 @@ const register = asyncHandler(async (req, res) => {
   await sendEmail(data);
   return res.status(200).json({
     success: true,
-    message: "Gửi email để xác thực email thành công",
-    registerToken,
-    f,
+    message: "Kiểm tra email để xác thực tài khoản",
   });
 });
 
@@ -54,7 +47,7 @@ const finalRegister = asyncHandler(async (req, res) => {
     return res.redirect(`${process.env.URL_CLIENT}/final-register/failed`);
   }
 
-  const User = await userModel.create({
+  const User = await userServices.createUser({
     email: cookie?.dataRegister?.email,
     password: cookie?.dataRegister?.password,
     registerToken: cookie?.dataRegister?.registerToken,
@@ -72,14 +65,8 @@ const finalRegister = asyncHandler(async (req, res) => {
 });
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường email và password là bắt buộc",
-    });
-  }
 
-  const User = await userModel.findOne({ email });
+  const User = await userServices.checkDataUser({ email });
   if (!(User && (await User.checkPassword(password)))) {
     throw new Error("Email hoặc Password không hợp lệ");
   }
@@ -93,7 +80,7 @@ const login = asyncHandler(async (req, res) => {
   } = User.toObject();
   const accessToken = signAccessToken(User._id, role);
   const refreshToken = signRefreshToken(User._id);
-  await userModel.findByIdAndUpdate(User._id, { refreshToken }, { new: true });
+  await userServices.updateUser(User._id, { refreshToken });
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -112,7 +99,7 @@ const logout = asyncHandler(async (req, res) => {
   if (!cookie || !cookie.refreshToken) {
     throw new Error("Không tìm thấy refresh token ");
   }
-  await userModel.findByIdAndUpdate(_id, { refreshToken: "" }, { new: true });
+  await userServices.updateUser(_id, { refreshToken: "" });
 
   res.clearCookie("refreshToken", {
     httpOnly: true,
@@ -127,14 +114,8 @@ const logout = asyncHandler(async (req, res) => {
 
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  if (!email) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường email là bắt buộc",
-    });
-  }
 
-  const User = await userModel.findOne({ email });
+  const User = await userServices.checkDataUser({ email });
   if (!User) {
     throw new Error("không tìm thấy người dùng qua email");
   }
@@ -153,24 +134,18 @@ const forgotPassword = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Gửi email để xác thực mật khẩu thành công",
-    passwordResetToken,
   });
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
   const { password, tokenPassword } = req.body;
-  if (!tokenPassword || !password) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường token password hoặc password là bắt buộc",
-    });
-  }
+
   const passwordResetToken = crypto
     .createHash("sha256")
     .update(tokenPassword)
     .digest("hex");
 
-  const User = await userModel.findOne({
+  const User = await userServices.checkDataUser({
     passwordResetToken,
   });
 
@@ -206,7 +181,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
           message: "Xác thực refersh token không thành công",
         });
       }
-      const User = await userModel.findOne({
+      const User = await userServices.checkDataUser({
         _id: decode._id,
         refreshToken: cookie.refreshToken,
       });
@@ -223,17 +198,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const getUser = asyncHandler(async (req, res) => {
   const { _id } = req.user;
 
-  const User = await userModel
-    .findById(_id)
-    .select("-refreshToken -password")
-    .populate({
-      path: "cart",
-      populate: {
-        path: "product",
-        select: "title thumb images price category brand",
-      },
-    })
-    .populate("wishlist", "title thumb price color category");
+  const User = await userServices.getDetailUser(_id);
   return res.status(200).json({
     success: User ? true : false,
     User: User ? User : "Không tìm thấy người dùng",
@@ -264,7 +229,7 @@ const getAllUser = asyncHandler(async (req, res) => {
     ];
   }
 
-  let Users = userModel.find(formatQueries);
+  let Users = userServices.findUser(formatQueries);
 
   //   sort
   if (req.query.sort) {
@@ -285,7 +250,7 @@ const getAllUser = asyncHandler(async (req, res) => {
   Users.skip(skip).limit(limit);
 
   const isUsers = await Users.exec();
-  const counts = await userModel.find(formatQueries).countDocuments();
+  const counts = await userServices.findUser(formatQueries).countDocuments();
 
   return res.status(200).json({
     success: isUsers ? true : false,
@@ -298,10 +263,8 @@ const getAllUser = asyncHandler(async (req, res) => {
 
 const deleteUser = asyncHandler(async (req, res) => {
   const { user_id } = req.params;
-  if (!user_id) {
-    throw new Error("Trường query user_id là bắt buộc");
-  }
-  const User = await userModel.findOneAndDelete({ _id: user_id });
+
+  const User = await userServices.deleteUser({ _id: user_id });
   return res.status(200).json({
     success: User ? true : false,
     message: User
@@ -315,15 +278,8 @@ const updateUser = asyncHandler(async (req, res) => {
   const { username, email, phone, address } = req.body;
   const data = { username, email, phone, address };
   if (req.file) data.avatar = req.file.path;
-  if (Object.keys(req.body).length === 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Thông tin cập nhật là bắt buộc",
-    });
-  }
-  const User = await userModel
-    .findByIdAndUpdate(_id, data, { new: true })
-    .select("-password  -refreshToken");
+
+  const User = await userServices.updateUser(_id, data);
   return res.status(200).json({
     success: User ? true : false,
     message: User
@@ -335,15 +291,8 @@ const updateUser = asyncHandler(async (req, res) => {
 
 const updateUserByAdmin = asyncHandler(async (req, res) => {
   const { user_id } = req.params;
-  if (!user_id || Object.keys(req.body).length === 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường user_id từ params và thông tin cập nhật là bắt buộc",
-    });
-  }
-  const User = await userModel
-    .findByIdAndUpdate({ _id: user_id }, req.body, { new: true })
-    .select("-password -refreshToken");
+
+  const User = await userServices.updateUser(user_id, req.body);
   return res.status(200).json({
     success: User ? true : false,
     message: User
@@ -355,20 +304,8 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
 
 const addAddress = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  if (!req.body.address) {
-    return res.status(400).json({
-      success: false,
-      message: "Thông tin địa chỉ là bắt buộc",
-    });
-  }
 
-  const User = await userModel.findByIdAndUpdate(
-    _id,
-    {
-      $push: { address: req.body.address },
-    },
-    { new: true }
-  );
+  const User = await userServices.updateAddress(_id, req.body.address);
 
   return res.status(200).json({
     success: User ? true : false,
@@ -389,36 +326,16 @@ const addCart = asyncHandler(async (req, res) => {
     thumb,
     title,
   } = req.body;
-  if (!product_id) {
-    return res.status(400).json({
-      success: false,
-      message: "Các trường product_id, color là bắt buộc",
-    });
-  }
-  const User = await userModel.findById(_id);
-  if (!User) {
-    return res.status(404).json({
-      success: false,
-      message: "Không tìm thấy người dùng",
-    });
-  }
+
+  const User = await userServices.checkUser(_id);
+  console.log(User);
   const productCart = User.cart.find(
     (item) => item.product.toString() === product_id
   );
   if (productCart) {
-    const result = await userModel.updateOne(
-      { cart: { $elemMatch: productCart } },
-      {
-        $set: {
-          "cart.$.quantity": quantity,
-          "cart.$.color": color,
-          "cart.$.price": price,
-          "cart.$.thumb": thumb,
-          "cart.$.title": title,
-        },
-      },
-      { new: true }
-    );
+    const data = { color, price, thumb, title, quantity };
+    console.log({ data });
+    const result = await userServices.updateAddCarted(productCart, data);
     return res.status(200).json({
       success: result ? true : false,
       message: result
@@ -426,15 +343,9 @@ const addCart = asyncHandler(async (req, res) => {
         : "Thêm sản phẩm không thành công",
     });
   } else {
-    const result = await userModel.findByIdAndUpdate(
-      _id,
-      {
-        $push: {
-          cart: { product: product_id, color, quantity, price, thumb, title },
-        },
-      },
-      { new: true }
-    );
+    const data = { product: product_id, color, price, thumb, title, quantity };
+    console.log({ data });
+    const result = await userServices.addToCart(_id, data);
     return res.status(200).json({
       success: result ? true : false,
       message: result
@@ -448,19 +359,8 @@ const addCart = asyncHandler(async (req, res) => {
 const deleteCart = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { product_id } = req.params;
-  if (!product_id) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường product_id là bắt buộc",
-    });
-  }
-  const User = await userModel.findById(_id);
-  if (!User) {
-    return res.status(404).json({
-      success: false,
-      message: "Không tìm thấy người dùng",
-    });
-  }
+
+  const User = await userServices.checkDataUser({ _id });
 
   const productCart = User.cart.find(
     (item) => item.product.toString() === product_id
@@ -472,11 +372,7 @@ const deleteCart = asyncHandler(async (req, res) => {
       message: "không tìm thấy sản phẩm để xóa",
     });
   }
-  const result = await userModel.findByIdAndUpdate(
-    _id,
-    { $pull: { cart: { product: product_id } } },
-    { new: true }
-  );
+  const result = await userServices.deleteCarted(_id, product_id);
   return res.status(200).json({
     success: result ? true : false,
     message: result
@@ -489,27 +385,14 @@ const deleteCart = asyncHandler(async (req, res) => {
 const updateWishlist = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { product_id } = req.params;
-  if (!product_id) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường product_id là bắt buộc",
-    });
-  }
 
-  const User = await userModel.findById(_id);
-  if (!User) {
-    throw new Error("Không tìm người dùng");
-  }
+  const User = await userServices.checkDataUser({ _id });
   const alreadyWishlist = User?.wishlist?.find(
     (item) => item.toString() === product_id
   );
 
   if (alreadyWishlist) {
-    const response = await userModel.findByIdAndUpdate(
-      _id,
-      { $pull: { wishlist: product_id } },
-      { new: true }
-    );
+    const response = await userServices.deleteWishlist(_id, product_id);
     return res.json({
       success: response ? true : false,
       message: response
@@ -517,11 +400,7 @@ const updateWishlist = asyncHandler(async (req, res) => {
         : "Xóa sản phẩm yêu thích thất bại",
     });
   } else {
-    const response = await userModel.findByIdAndUpdate(
-      _id,
-      { $push: { wishlist: product_id } },
-      { new: true }
-    );
+    const response = await userServices.updateWishlist(_id, product_id);
     return res.json({
       success: response ? true : false,
       message: response

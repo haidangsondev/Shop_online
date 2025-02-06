@@ -1,5 +1,6 @@
 const router = require("express").Router();
-const productCategoryController = require("../controllers/productCategory.controller");
+const productCategoryController = require("../controllers/productCategory.controllers");
+const { validateRequest } = require("../middlewares/validate.middleware");
 const { verifyAccessToken, verifyIsAdmin } = require("../utils/jwt");
 
 // USER
@@ -15,6 +16,7 @@ router.get(
 router.use(verifyAccessToken, verifyIsAdmin);
 router.post(
   "/create-product-category",
+  validateRequest("productCategory"),
   productCategoryController.createProductCategory
 );
 router.put(

@@ -31,14 +31,14 @@ function Header({ dispatch }) {
         <div className="flex flex-col items-center px-6 border-r">
           <span className="flex gap-4 items-center">
             <FaPhoneAlt color="main" />
-            <span className="font-semibold ">(+1800) 000 8808</span>
+            <span className="font-semibold ">(+84)949758837</span>
           </span>
           <span>Thứ 6 đến 7: 9:00AM - 8:00PM</span>
         </div>
         <div className="flex flex-col items-center px-6 border-r">
           <span className="flex gap-4 items-center">
             <MdEmail color="main" />
-            <span className="font-semibold ">SUPPORT@TADATHEMES.COM</span>
+            <span className="font-semibold ">haidangson.dev@gmail.com</span>
           </span>
           <span>Hỗ trợ online 24/7</span>
         </div>

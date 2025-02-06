@@ -1,15 +1,9 @@
-const productCategoryModel = require("../models/productCategory.model");
 const asyncHandler = require("express-async-handler");
-
+const productCategoryServices = require("../services/productCategory.services");
 const createProductCategory = asyncHandler(async (req, res) => {
-  const { title } = req.body;
-  if (!title) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường title là bắt buộc",
-    });
-  }
-  const productCategory = await productCategoryModel.create(req.body);
+  const productCategory = await productCategoryServices.createProductCategory(
+    req.body
+  );
   return res.status(200).json({
     success: productCategory ? true : false,
     message: productCategory
@@ -20,7 +14,8 @@ const createProductCategory = asyncHandler(async (req, res) => {
 });
 
 const getProductCategoies = asyncHandler(async (req, res) => {
-  const productCategories = await productCategoryModel.find();
+  const productCategories =
+    await productCategoryServices.getProductCategories();
   return res.status(200).json({
     success: productCategories ? true : false,
     message: productCategories
@@ -32,15 +27,9 @@ const getProductCategoies = asyncHandler(async (req, res) => {
 
 const getProductCategory = asyncHandler(async (req, res) => {
   const { product_category_id } = req.params;
-  if (!product_category_id) {
-    return res.status(400).json({
-      success: false,
-      message: "product_category_id là bắt buộc",
-    });
-  }
-  const productCategory = await productCategoryModel.findById(
-    product_category_id
-  );
+
+  const productCategory =
+    await productCategoryServices.getDetailProductCategory(product_category_id);
   return res.status(200).json({
     success: productCategory ? true : false,
     message: productCategory
@@ -51,18 +40,10 @@ const getProductCategory = asyncHandler(async (req, res) => {
 });
 const updateProductCategory = asyncHandler(async (req, res) => {
   const { product_category_id } = req.params;
-  console.log(product_category_id);
-  const { title } = req.body;
-  if (!product_category_id || !title) {
-    return res.status(400).json({
-      success: false,
-      message: "product_category_id và thông tin cập nhật là bắt buộc",
-    });
-  }
-  const productCategory = await productCategoryModel.findByIdAndUpdate(
+
+  const productCategory = await productCategoryServices.updateProductCategory(
     product_category_id,
-    req.body,
-    { new: true }
+    req.body
   );
   return res.status(200).json({
     success: productCategory ? true : false,
@@ -74,13 +55,8 @@ const updateProductCategory = asyncHandler(async (req, res) => {
 });
 const deleteProductCategory = asyncHandler(async (req, res) => {
   const { product_category_id } = req.params;
-  if (!product_category_id) {
-    return res.status(400).json({
-      success: false,
-      message: "product_category_id là bắt buộc",
-    });
-  }
-  const productCategory = await productCategoryModel.findByIdAndDelete(
+
+  const productCategory = await productCategoryServices.deleteProductCategory(
     product_category_id
   );
   return res.status(200).json({

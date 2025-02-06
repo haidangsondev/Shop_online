@@ -1,7 +1,8 @@
 const router = require("express").Router();
-const productController = require("../controllers/product.controller");
+const productController = require("../controllers/product.controllers");
 const { verifyAccessToken, verifyIsAdmin } = require("../utils/jwt");
 const uploadCloud = require("../utils/cloudinary");
+const { validateRequest } = require("../middlewares/validate.middleware");
 // USER
 
 router.get("/get-product/:product_id", productController.getProduct);
@@ -9,6 +10,7 @@ router.get("/get-product", productController.getProducts);
 router.put(
   "/rating-product",
   verifyAccessToken,
+  validateRequest("rating"),
   productController.ratingProduct
 );
 // ADMIN
@@ -19,6 +21,7 @@ router.post(
     { name: "images", maxCount: 10 },
     { name: "thumb", maxCount: 1 },
   ]),
+  validateRequest("product"),
   productController.createProduct
 );
 router.put(

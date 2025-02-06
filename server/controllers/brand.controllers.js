@@ -1,15 +1,8 @@
-const brandModel = require("../models/brand.model");
 const asyncHandler = require("express-async-handler");
+const brandServices = require("../services/brand.services");
 
 const createBrand = asyncHandler(async (req, res) => {
-  const { title } = req.body;
-  if (!title) {
-    return res.status(400).json({
-      success: false,
-      message: "Trường title là bắt buộc",
-    });
-  }
-  const Brand = await brandModel.create(req.body);
+  const Brand = await brandServices.createBrand(req.body);
   return res.status(200).json({
     success: Brand ? true : false,
     message: Brand ? "Tạo brand thành công" : "Tạo brand không thành công",
@@ -18,7 +11,7 @@ const createBrand = asyncHandler(async (req, res) => {
 });
 
 const getBrands = asyncHandler(async (req, res) => {
-  const Brand = await brandModel.find();
+  const Brand = await brandServices.getAllBrands();
   return res.status(200).json({
     success: Brand ? true : false,
     message: Brand ? "Lấy brands thành công" : "Lấy brands không thành công",
@@ -28,13 +21,8 @@ const getBrands = asyncHandler(async (req, res) => {
 
 const getBrand = asyncHandler(async (req, res) => {
   const { brand_id } = req.params;
-  if (!brand_id) {
-    return res.status(400).json({
-      success: false,
-      message: "brand_id là bắt buộc",
-    });
-  }
-  const Brand = await brandModel.findById(brand_id);
+
+  const Brand = await brandServices.getBrandById(brand_id);
   return res.status(200).json({
     success: Brand ? true : false,
     message: Brand ? "Lấy brand thành công" : "Lấy brand không thành công",
@@ -45,15 +33,8 @@ const getBrand = asyncHandler(async (req, res) => {
 const updatebrand = asyncHandler(async (req, res) => {
   const { brand_id } = req.params;
   const { title } = req.body;
-  if (!brand_id || !title) {
-    return res.status(400).json({
-      success: false,
-      message: "brand_id và thông tin cập nhật là bắt buộc",
-    });
-  }
-  const Brand = await brandModel.findByIdAndUpdate(brand_id, req.body, {
-    new: true,
-  });
+
+  const Brand = await brandServices.updateBrandById(brand_id, req.body);
   return res.status(200).json({
     success: Brand ? true : false,
     message: Brand
@@ -64,13 +45,8 @@ const updatebrand = asyncHandler(async (req, res) => {
 });
 const deleteBrand = asyncHandler(async (req, res) => {
   const { brand_id } = req.params;
-  if (!brand_id) {
-    return res.status(400).json({
-      success: false,
-      message: "brand_id là bắt buộc",
-    });
-  }
-  const Brand = await brandModel.findByIdAndDelete(brand_id);
+
+  const Brand = await brandServices.deleteBrandById(brand_id);
   return res.status(200).json({
     success: Brand ? true : false,
     message: Brand ? "Xóa brand thành công" : "Xóa brand không thành công",

@@ -2,19 +2,21 @@ const orderModel = require("../models/order.model");
 const userModel = require("../models/user.model");
 const couponModel = require("../models/coupon.model");
 const asyncHandler = require("express-async-handler");
+const userServices = require("../services/user.services");
+const orderServices = require("../services/order.services");
 
 const createOrder = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { products, total, address } = req.body;
-  console.log(req.body);
   if (address) {
-    await userModel.findByIdAndUpdate(
-      _id,
-      { address: address, cart: [] },
-      { new: true }
-    );
+    const data = { address: address, cart: [] };
+    await userServices.updateUser(_id, data);
   }
-  const Order = await orderModel.create({ products, total, orderBy: _id });
+  const Order = await orderServices.createOrder({
+    products,
+    total,
+    orderBy: _id,
+  });
   return res.status(200).json({
     success: Order ? true : false,
     message: Order ? "Đặt hàng thành công" : "Đặt hàng không thành công",
@@ -68,7 +70,7 @@ const getOrderUser = asyncHandler(async (req, res) => {
   // }
 
   const result = { ...formatQueries, orderBy: _id };
-  let Product = orderModel.find(result);
+  let Product = orderServices.getAllOrders(result);
   //   sort
   if (req.query.sort) {
     const sortBy = req.query.sort.split(",").join(" ");
@@ -88,7 +90,7 @@ const getOrderUser = asyncHandler(async (req, res) => {
   Product.skip(skip).limit(limit);
 
   const Orders = await Product.exec();
-  const counts = await orderModel.find(result).countDocuments();
+  const counts = await orderServices.getAllOrders(result).countDocuments();
   return res.status(200).json({
     success: Orders ? true : false,
     message: Orders ? "Lấy hóa đơn thành công" : "Lấy hóa đơn không thành công",
@@ -179,13 +181,7 @@ const getOrders = asyncHandler(async (req, res) => {
 const updateStatusByAdmin = asyncHandler(async (req, res) => {
   const { order_id } = req.params;
   const { status } = req.body;
-  const Order = await orderModel.findByIdAndUpdate(
-    order_id,
-    { status },
-    {
-      new: true,
-    }
-  );
+  const Order = await orderServices.updateOrderById(order_id, { status });
   return res.status(200).json({
     success: Order ? true : false,
     message: Order
@@ -194,6 +190,7 @@ const updateStatusByAdmin = asyncHandler(async (req, res) => {
     Order,
   });
 });
+
 module.exports = {
   // USER
   createOrder,
